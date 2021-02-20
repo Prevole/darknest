@@ -1,0 +1,126 @@
+- name: Install additional packages
+  apt:
+    name: "{{ package }}"
+    state: present
+  loop:
+    - dnsmasq
+    - nfs-kernel-server
+  loop_control:
+    loop_var: package
+
+- name: Prepare serivce directories
+  file:
+    path: "{{ sv_netinstall_netboot_dir }}/{{ dir }}"
+    state: directory
+  loop:
+    - tftp
+    - nfs
+  loop_control:
+    loop_var: dir
+
+- name: Configure dnsmasq
+  template:
+    src: templates/etc/dnsmasq.conf.j2
+    dest: /etc/dnsmasq.conf
+  notify:
+    - Restart dnsmasq
+
+- name: Copy Raspbian Lite custom ro images
+  copy:
+    src: "files/rpi-read-only-{{ type }}.img"
+    dest: "{{ sv_netinstall_downloads_dir }}/rpi-read-only-{{ type }}.img"
+  loop:
+    - boot
+    - root
+  loop_control:
+    loop_var: type
+
+- name: Downloads firmware files
+  get_url:
+    url: "{{ sv_netinstall_rpi_firmware_url }}/{{ firmware_file }}"
+    dest: "{{ sv_netinstall_rpi_firmware_files_dir }}/{{ firmware_file }}"
+  loop: "{{ sv_netinstall_rpi_firmware_files }}"
+  loop_control:
+    loop_var: firmware_file
+
+- name: Check if rpi4-base has been created
+  stat:
+    path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base"
+  register: rpi_nfs_base_dir
+
+- name: Setup the Raspbian Lite image for NFS
+  block:
+    - name: Prepare mount folders
+      file:
+        path: "{{ sv_netinstall_mount_dir }}/{{ partition }}"
+        state: directory
+      loop: "{{ sv_netinstall_partitions }}"
+      loop_control:
+        loop_var: partition
+
+    - name: Mount the disk partitions
+      shell: "mount {{ sv_netinstall_downloads_dir }}/rpi-read-only-{{ partition }}.img {{ sv_netinstall_mount_dir }}/{{ partition }}/"
+      loop: "{{ sv_netinstall_partitions }}"
+      loop_control:
+        loop_var: partition
+
+    - name: Prepare the rpi4-base nfs directory
+      file:
+        path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base"
+        state: directory
+
+    - name: Copy the root image files
+      shell: "cp -a {{ sv_netinstall_mount_dir }}/root/* {{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/"
+
+    - name: Copy the boot image files
+      shell: "cp -a {{ sv_netinstall_mount_dir }}/boot/* {{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/boot/"
+
+    - name: Remove existing boot files
+      file:
+        path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/boot/{{ file }}"
+        state: absent
+      loop: "{{ sv_netinstall_rpi_firmware_files }}"
+      loop_control:
+        loop_var: file
+
+    - name: Copy firmware boot files
+      copy:
+        src: "{{ sv_netinstall_rpi_firmware_files_dir }}/{{ file }}"
+        dest: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/boot/{{ file }}"
+        remote_src: yes
+      loop: "{{ sv_netinstall_rpi_firmware_files }}"
+      loop_control:
+        loop_var: file
+      notify:
+        - Cleaning
+
+    - name: Flush handlers
+      meta: flush_handlers
+  when: not rpi_nfs_base_dir.stat.exists
+
+- name: Manage fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/boot {{ sv_netinstall_netboot_dir }}/tftp none defaults,bind 0 0"
+
+- name: Manage nfs
+  lineinfile:
+    path: /etc/exports
+    line: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base {{ line.1 }}(ro,sync,no_subtree_check,no_root_squash)"
+  loop: "{{ gl_rpi_serials | product(gl_netboot_networks) | list }}"
+  loop_control:
+    loop_var: line
+
+- name: Remove reference to original RPi in netboot fstab
+  lineinfile:
+    path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/etc/fstab"
+    regexp: UUID
+    state: absent
+
+- name: Copy the cmdline.txt file
+  copy:
+    src: files/boot/cmdline.txt
+    dest: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/boot/cmdline.txt"
+
+- name: Mount tftp
+  shell: "mount {{ sv_netinstall_netboot_dir }}/tftp"

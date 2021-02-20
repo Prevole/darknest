@@ -1,0 +1,20 @@
+- name: Reserve DNS name
+  opnsense_unbound_record:
+    path: "{{ local_opnsense_config_file }}"
+    host: "{{ opnsense_reserve_ip_hostname | default() }}"
+    ip: "{{ opnsense_reserve_ip_ip_addr }}"
+    domain: "{{ gl_router.domain }}"
+    descr: "{{ opnsense_reserve_dns_descr | default(gl_manged_by) }}"
+    record: A
+  delegate_to: localhost
+
+- name: Reserve Static IP address
+  opnsense_dhcpd:
+    path: "{{ local_opnsense_config_file }}"
+    name: "{{ local_opnsense_reserve_ip_interface }}"
+    staticmap:
+      - mac: "{{ opnsense_reserve_ip_mac_addr }}"
+        ipaddr: "{{ opnsense_reserve_ip_ip_addr }}"
+        hostname: "{{ opnsense_reserve_ip_hostname | default() }}"
+        descr: "{{ opnsense_reserve_ip_descr | default(gl_manged_by) }}"
+  delegate_to: localhost

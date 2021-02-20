@@ -1,0 +1,13 @@
+- name: Verify add_host parameters
+  block:
+    - name: Check inventory_hostname is present
+      fail:
+        msg: inventory_hostname must be specified
+      when: inventory_hostname is undefined
+
+    - name: Check inventory_name is present
+      fail:
+        msg: inventory_name must be specified
+      when: inventory_name is undefined
+
+  when: inventory_action == 'add_host'

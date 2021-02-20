@@ -1,0 +1,22 @@
+- name: Restart systemd-resolved
+  service:
+    name: systemd-resolved
+    state: restarted
+
+- name: Restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
+
+- name: Restart rpcbind
+  service:
+    name: rpcbind
+    state: restarted
+
+- name: Restart nfs-server
+  service:
+    name: nfs-server
+    state: restarted
+
+- name: Cleaning
+  include_tasks: handlers/cleaning.yml

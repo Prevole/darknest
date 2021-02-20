@@ -1,0 +1,26 @@
+gl_manged_by: Managed by Ansible
+
+gl_dk_workspace: ~/.dk-workspace
+
+gl_host:
+  prefix: dk
+  user: root
+  password: "" # Empty on purpose
+  private_key: "{{ lookup('env', 'ENV_DK_PRIVATE_KEY_PATH') }}"
+  base_dir: /dk
+
+gl_router:
+  config_path: /conf/config.xml
+  name: "{{ gl_host.prefix }}rt01"
+  ip: "{{ lookup('env', 'ENV_DK_ROUTER_IP') }}"
+  domain: "{{ lookup('env', 'ENV_DK_DOMAIN_NAME') }}"
+  user: root
+
+gl_router_if_mapping_ip:
+  30: lan
+  40: opt1
+  50: opt2
+
+gl_netboot_networks:
+  - "{{ lookup('env', 'ENV_DK_LAB_NETWORK') }}"
+

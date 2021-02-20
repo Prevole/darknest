@@ -1,0 +1,23 @@
+sv_netinstall_netboot_dir: "{{ gl_host.base_dir }}/netboot"
+sv_netinstall_downloads_dir: "{{ gl_host.base_dir }}/downloads"
+sv_netinstall_rpi_firmware_files_dir: "{{ sv_netinstall_downloads_dir }}/firmware"
+sv_netinstall_scripts_dir: "{{ gl_host.base_dir }}/scripts"
+sv_netinstall_mount_dir: "{{ gl_host.base_dir }}/mount"
+
+sv_netinstall_raspbian_lite_version: 2020-02-13
+sv_netinstall_raspbian_lite_archive: "{{ sv_netinstall_raspbian_lite_version }}-raspbian-buster-lite.zip"
+sv_netinstall_raspbian_lite_image: "{{ sv_netinstall_raspbian_lite_archive | regex_replace('zip$', 'img') }}"
+sv_netinstall_raspbian_lite_url: "https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2020-02-14/{{ sv_netinstall_raspbian_lite_archive }}"
+
+sv_netinstall_rpi_firmware_url: https://github.com/Hexxeh/rpi-firmware/raw/stable
+sv_netinstall_rpi_firmware_files:
+  - start4.elf
+  - fixup4.dat
+
+#sv_netinstall_partitions:
+#  - { name: bootmnt, idx: 1 }
+#  - { name: rootmnt, idx: 2 }
+
+sv_netinstall_partitions:
+  - boot
+  - root

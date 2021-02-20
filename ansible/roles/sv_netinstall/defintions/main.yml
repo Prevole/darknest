@@ -1,0 +1,5 @@
+def_host_name_pattern: netinst
+def_host_service: netinstall
+def_host_clusters: [X]
+def_host_macaddr: "{{ lookup('env', 'ENV_DK_NETINST_MAC_ADDR') }}"
+def_host_ipaddr: "{{ lookup('env', 'ENV_DK_NETINST_IP_ADDR') }}"

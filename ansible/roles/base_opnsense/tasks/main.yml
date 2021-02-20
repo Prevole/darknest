@@ -1,0 +1,26 @@
+- name: Validations
+  include_tasks: "_checks.yml"
+
+- name: Execute opnsense role
+  block:
+    - name: Pre opensense actions
+      include_tasks: "_pre.yml"
+
+    - name: Proceed with opnsense action
+      include_tasks: "{{ opnsense_action }}.yml"
+
+    - name: Post opensense actions
+      include_tasks: "_post.yml"
+
+    - name: Remove temp file
+      file:
+        path: "{{ local_opnsense_config_file }}"
+        state: absent
+      delegate_to: localhost
+  rescue:
+    - name: Remove temp file
+      file:
+        path: "{{ local_opnsense_config_file }}"
+        state: absent
+      delegate_to: localhost
+      when: local_opnsense_config_file is defined

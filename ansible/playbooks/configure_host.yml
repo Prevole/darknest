@@ -1,0 +1,42 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all/vars.yml
+  tasks:
+    - name: Main DK setup
+      include_role:
+        name: base_workspace
+
+    - name: Valdiate host_amount
+      set_fact:
+        def_host_amount: "{{ def_host_amount | default(1) }}"
+
+    - name: Add host to inventory
+      include_role:
+        name: base_inventory
+      vars:
+        inventory_action: add_host
+        inventory_name: inventory
+        inventory_hostname: "{{ gl_host.prefix }}{{ item[1] | lower }}{{ def_host_name_pattern }}{{ '%02d' | format(item[0]) }}"
+        inventory_user: "{{ gl_host.user }}"
+        inventory_password: "{{ gl_host.password }}"
+        inventory_ssh_private_key_file: "{{ gl_host.private_key }}"
+      with_nested:
+        - "{{ range(1, def_host_amount | int + 1) | list }}"
+        - "{{ def_host_clusters }}"
+      tags: always
+
+- hosts: inventory
+  gather_facts: false
+  serial: "{{ rolling | default(omit) }}"
+  vars_files:
+    - ../group_vars/all/vars.yml
+  vars:
+    host_hostname: "{{ ansible_hostname }}"
+    host_hostname_len: "{{ gl_host.prefix | length }}"
+    host_cluster: "{{ host_hostname[host_hostname_len:host_hostname_len + 1] | upper }}"
+  tasks:
+    - name: Configure host
+      include_role:
+        name: base_host_common

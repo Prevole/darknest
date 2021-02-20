@@ -1,0 +1,5 @@
+- name: Copy the configuration file back to the device
+  copy:
+    src: "{{ local_opnsense_config_file }}"
+    dest: /conf/config.xml
+  delegate_to: "{{ gl_router.name }}"

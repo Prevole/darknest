@@ -1,0 +1,38 @@
+- name: Ensure opnsense working directory
+  file:
+    path: "{{ opnsense_workspace }}"
+    state: directory
+  delegate_to: localhost
+
+- name: Add router to host inventory
+  add_host:
+    hostname: "{{ gl_router.name }}"
+    groups: inventory
+    ansible_host: "{{ gl_router.ip }}"
+    ansible_user: "{{ gl_router.user }}"
+    ansible_connection: ssh
+    ansible_python_interpreter: /usr/local/bin/python3
+
+- name: Generate temp file name for the configuration file
+  set_fact:
+    local_opnsense_config_file: "{{ opnsense_workspace }}/{{ 99999999 | random | to_uuid }}.xml"
+
+- name: Retrieve the configuration file
+  fetch:
+    src: /conf/config.xml
+    dest: "{{ local_opnsense_config_file }}"
+    flat: True
+  delegate_to: "{{ gl_router.name }}"
+
+- name: Setup for reserve_ip action
+  block:
+    - name: Extract network from ip addr
+      set_fact:
+        local_opnsense_reserve_ip_network: "{{ opnsense_reserve_ip_ip_addr.split('.')[2] }}"
+      when: opnsense_reserve_ip_ip_addr is defined
+
+    - name: Retrieve network interface name
+      set_fact:
+        local_opnsense_reserve_ip_interface: "{{ gl_router_if_mapping_ip[local_opnsense_reserve_ip_network | int] }}"
+      when: local_opnsense_reserve_ip_network is defined
+  when: opnsense_action == 'reserve_ip'

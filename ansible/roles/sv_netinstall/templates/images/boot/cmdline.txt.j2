@@ -1,0 +1,1 @@
+console=serial0,115200 console=tty root=/dev/nfs nfsroot={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base,vers=3 ip=dhcp rootwait elevator=deadline fastboot noswap ro

@@ -1,0 +1,10 @@
+- name: Clean mounts
+  shell: "umount {{ sv_netinstall_mount_dir }}/{{ partition }}/"
+  loop: "{{ sv_netinstall_partitions }}"
+  loop_control:
+    loop_var: partition
+
+- name: Clean mount folders
+  file:
+    path: "{{ sv_netinstall_mount_dir }}"
+    state: absent

@@ -1,0 +1,32 @@
+- name: Update resolved to avoid conflicts with dnsmasq
+  lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: '#DNSStubListener=yes'
+    line: DNSStubListener=no
+  notify:
+    - Restart systemd-resolved
+
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Prepare main directories
+  file:
+    path: "{{ dir }}"
+    state: directory
+  loop:
+    - "{{ sv_netinstall_downloads_dir }}"
+    - "{{ sv_netinstall_scripts_dir }}"
+    - "{{ sv_netinstall_rpi_firmware_files_dir }}"
+    - "{{ sv_netinstall_mount_dir }}"
+  loop_control:
+    loop_var: dir
+
+- name: Prepare netboot images infrastructure
+  include_tasks: ./_prepare_netboot_images.yml
+  notify:
+    - Restart dnsmasq
+    - Restart rpcbind
+    - Restart nfs-server
+
+- name: Prepare disk image to install
+  include_tasks: ./_preapre_install_image.yml

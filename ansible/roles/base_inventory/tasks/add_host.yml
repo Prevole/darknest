@@ -1,0 +1,10 @@
+- name: Building hosts inventory
+  add_host:
+    name: "{{ inventory_hostname }}"
+    groups: "{{ inventory_name }}"
+    ansible_hostname: "{{ inventory_hostname }}"
+    ansible_user: "{{ inventory_user | default(gl_host.user) }}"
+    ansible_password: "{{ inventory_password | default(gl_host.password) }}"
+    ansible_ssh_private_key_file: "{{ inventory_ssh_private_key_file | default(gl_host.private_key) }}"
+    ansible_connection: ssh
+    ansible_port: 22

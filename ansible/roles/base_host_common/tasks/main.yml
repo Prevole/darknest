@@ -1,0 +1,11 @@
+- name: Update the hostname
+  hostname:
+    name: "{{ host_hostname }}"
+
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: Upgrade OS
+  apt:
+    upgrade: dist

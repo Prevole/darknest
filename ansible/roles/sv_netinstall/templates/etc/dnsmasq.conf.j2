@@ -1,0 +1,12 @@
+# {{ gl_manged_by }}
+
+bind-interfaces
+domain={{ gl_router.domain }}
+log-dhcp
+{% for network in gl_router_if_mapping_ip.keys() %}
+dhcp-range={{ def_host_ipaddr | regex_replace('[1-9][0-9]{0,2}\.[1-9][0-9]{0,2}$', network | string + '.0') }},proxy
+{% endfor %}
+enable-tftp
+log-facility=/var/log/dnsmasq.log
+pxe-service=0,"Raspberry Pi Boot"
+tftp-root={{ sv_netinstall_netboot_dir }}/tftp

@@ -1,0 +1,44 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all/vars.yml
+  tasks:
+    - name: Main DK setup
+      include_role:
+        name: base_workspace
+
+    - name: Valdiate host_amount
+      set_fact:
+        def_host_amount: "{{ def_host_amount | default(1) }}"
+
+    - name: Add host to inventory
+      include_role:
+        name: base_inventory
+      vars:
+        inventory_action: add_host
+        inventory_name: inventory
+        inventory_hostname: "{{ gl_host.prefix }}{{ item[1] | lower }}{{ def_host_name_pattern }}{{ '%02d' | format(item[0]) }}"
+        inventory_user: "{{ gl_host.user }}"
+        inventory_password: "{{ gl_host.password }}"
+        inventory_ssh_private_key_file: "{{ gl_host.private_key }}"
+      with_nested:
+        - "{{ range(1, def_host_amount | int + 1) | list }}"
+        - "{{ def_host_clusters }}"
+      tags: always
+
+- hosts: inventory
+  gather_facts: false
+  serial: "{{ rolling | default(omit) }}"
+  vars_files:
+    - ../group_vars/all/vars.yml
+  tasks:
+    - name: Reserve host IP
+      include_role:
+        name: base_opnsense
+      vars:
+        opnsense_action: reserve_ip
+        opnsense_reserve_ip_mac_addr: "{{ def_host_macaddr }}"
+        opnsense_reserve_ip_ip_addr: "{{ def_host_ipaddr }}"
+        opnsense_reserve_ip_hostname: "{{ ansible_hostname }}"
+      when: def_host_macaddr is defined

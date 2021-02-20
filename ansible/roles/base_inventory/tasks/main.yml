@@ -1,0 +1,5 @@
+- name: Validations
+  include_tasks: "_checks.yml"
+
+- name: Proceed with inventory action
+  include_tasks: "{{ inventory_action }}.yml"

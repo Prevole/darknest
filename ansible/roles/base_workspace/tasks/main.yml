@@ -1,0 +1,4 @@
+- name: Ensure workspace
+  file:
+    path: "{{ gl_dk_workspace }}"
+    state: directory
