@@ -8,15 +8,25 @@
     name: dnsmasq
     state: restarted
 
-- name: Restart rpcbind
+- name: Restart nfs
   service:
-    name: rpcbind
+    name: "{{ service }}"
     state: restarted
-
-- name: Restart nfs-server
-  service:
-    name: nfs-server
-    state: restarted
+  loop:
+    - rpcbind
+    - nfs-server
+  loop_control:
+    loop_var: service
 
 - name: Cleaning
   include_tasks: handlers/cleaning.yml
+
+- name: Raspbian images download done
+  copy:
+    dest: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_boot_img_sha256 }}"
+    content: "{{ sv_netinstall_boot_img_sha256 }}"
+
+- name: Ubuntu image download done
+  copy:
+    dest: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_ubuntu_img_sha256 }}"
+    content: "{{ sv_netinstall_ubuntu_img_sha256 }}"

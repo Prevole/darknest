@@ -15,18 +15,13 @@
     state: directory
   loop:
     - "{{ sv_netinstall_downloads_dir }}"
-    - "{{ sv_netinstall_scripts_dir }}"
     - "{{ sv_netinstall_rpi_firmware_files_dir }}"
     - "{{ sv_netinstall_mount_dir }}"
   loop_control:
     loop_var: dir
 
 - name: Prepare netboot images infrastructure
-  include_tasks: ./_prepare_netboot_images.yml
-  notify:
-    - Restart dnsmasq
-    - Restart rpcbind
-    - Restart nfs-server
+  include_tasks: _prepare_netboot_images.yml
 
 - name: Prepare disk image to install
-  include_tasks: ./_preapre_install_image.yml
+  include_tasks: _prepare_install_image.yml

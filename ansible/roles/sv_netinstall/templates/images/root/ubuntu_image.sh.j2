@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mount /ubuntu
+
+dd bs=4M if=/ubuntu/{{ sv_netinstall_ubuntu_img }} of=/dev/{{ sv_netinstall_device_name }} conv=fsync
+
+reboot

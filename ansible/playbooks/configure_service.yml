@@ -28,7 +28,7 @@
       tags: always
 
 - hosts: inventory
-  gather_facts: false
+  gather_facts: true
   serial: "{{ rolling | default(omit) }}"
   vars_files:
     - ../group_vars/all/vars.yml

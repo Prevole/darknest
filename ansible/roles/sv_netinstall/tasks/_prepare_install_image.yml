@@ -1,0 +1,49 @@
+- name: Prepare the nfs directory for Ubuntu image
+  file:
+    path: "{{ sv_netinstall_netboot_dir }}/nfs/ubuntu"
+    state: directory
+
+- name: Check if images are already copied
+  stat:
+    path: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_ubuntu_img_sha256 }}"
+  register: sv_netinstall_local_ubuntu_image_shafile
+
+- name: Copy Ubuntu image
+  copy:
+    src: "{{ sv_netinstall_ubuntu_img }}"
+    dest: "{{ sv_netinstall_netboot_dir }}/nfs/ubuntu/{{ sv_netinstall_ubuntu_img }}"
+  notify:
+    - Ubuntu image download done
+  when: not sv_netinstall_local_ubuntu_image_shafile.stat.exists
+
+- name: Prepare the export configuration
+  lineinfile:
+    path: /etc/exports
+    line: "{{ sv_netinstall_netboot_dir }}/nfs/ubuntu {{ network }}(ro,sync,no_subtree_check,no_root_squash)"
+  loop: "{{ gl_netboot_networks }}"
+  loop_control:
+    loop_var: network
+  notify:
+    - Restart nfs
+
+- name: Prepare the image to automount the NFS share
+  lineinfile:
+    path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/etc/fstab"
+    line: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ sv_netinstall_netboot_dir }}/nfs/ubuntu/ /ubuntu nfs defaults 0 0"
+
+- name: Copy the ubuntu image flasher script
+  template:
+    src: templates/images/root/ubuntu_image.sh.j2
+    dest: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/root/ubuntu_image.sh"
+    mode: u+rwx
+
+- name: Configure the script execution into the rc.local of the RPi image
+  lineinfile:
+    path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/etc/rc.local"
+    line: "/root/ubuntu_image.sh &"
+    insertbefore: "exit 0"
+
+-  name: Create the mount dir for ubuntu image storage
+   file:
+     path: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/ubuntu"
+     state: directory

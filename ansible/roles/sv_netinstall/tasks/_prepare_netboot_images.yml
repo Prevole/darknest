@@ -25,6 +25,11 @@
   notify:
     - Restart dnsmasq
 
+- name: Check if images are already copied
+  stat:
+    path: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_boot_img_sha256 }}"
+  register: sv_netinstall_local_images_shafile
+
 - name: Copy Raspbian Lite custom ro images
   copy:
     src: "files/rpi-read-only-{{ type }}.img"
@@ -34,10 +39,17 @@
     - root
   loop_control:
     loop_var: type
+  notify:
+    - Raspbian images download done
+  when: not sv_netinstall_local_images_shafile.stat.exists
 
-- name: Downloads firmware files
-  get_url:
-    url: "{{ sv_netinstall_rpi_firmware_url }}/{{ firmware_file }}"
+- name: Flush handlers
+  meta: flush_handlers
+
+# Source for the firmware files: https://github.com/Hexxeh/rpi-firmware/tree/stable
+- name: Copy firmware files
+  copy:
+    src: "files/{{ firmware_file }}"
     dest: "{{ sv_netinstall_rpi_firmware_files_dir }}/{{ firmware_file }}"
   loop: "{{ sv_netinstall_rpi_firmware_files }}"
   loop_control:
@@ -106,10 +118,10 @@
 - name: Manage nfs
   lineinfile:
     path: /etc/exports
-    line: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base {{ line.1 }}(ro,sync,no_subtree_check,no_root_squash)"
-  loop: "{{ gl_rpi_serials | product(gl_netboot_networks) | list }}"
+    line: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base {{ network }}(ro,sync,no_subtree_check,no_root_squash)"
+  loop: "{{ gl_netboot_networks }}"
   loop_control:
-    loop_var: line
+    loop_var: network
 
 - name: Remove reference to original RPi in netboot fstab
   lineinfile:
@@ -118,9 +130,17 @@
     state: absent
 
 - name: Copy the cmdline.txt file
-  copy:
-    src: files/boot/cmdline.txt
+  template:
+    src: templates/images/boot/cmdline.txt.j2
     dest: "{{ sv_netinstall_netboot_dir }}/nfs/rpi4-base/boot/cmdline.txt"
 
 - name: Mount tftp
   shell: "mount {{ sv_netinstall_netboot_dir }}/tftp"
+
+- name: Netboot images
+  debug:
+    msg: Netboot images configuration done, restarting services.
+  changed_when: true
+  notify:
+    - Restart dnsmasq
+    - Restart nfs

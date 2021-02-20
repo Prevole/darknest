@@ -1,23 +1,19 @@
 sv_netinstall_netboot_dir: "{{ gl_host.base_dir }}/netboot"
 sv_netinstall_downloads_dir: "{{ gl_host.base_dir }}/downloads"
 sv_netinstall_rpi_firmware_files_dir: "{{ sv_netinstall_downloads_dir }}/firmware"
-sv_netinstall_scripts_dir: "{{ gl_host.base_dir }}/scripts"
 sv_netinstall_mount_dir: "{{ gl_host.base_dir }}/mount"
 
-sv_netinstall_raspbian_lite_version: 2020-02-13
-sv_netinstall_raspbian_lite_archive: "{{ sv_netinstall_raspbian_lite_version }}-raspbian-buster-lite.zip"
-sv_netinstall_raspbian_lite_image: "{{ sv_netinstall_raspbian_lite_archive | regex_replace('zip$', 'img') }}"
-sv_netinstall_raspbian_lite_url: "https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2020-02-14/{{ sv_netinstall_raspbian_lite_archive }}"
-
-sv_netinstall_rpi_firmware_url: https://github.com/Hexxeh/rpi-firmware/raw/stable
 sv_netinstall_rpi_firmware_files:
   - start4.elf
   - fixup4.dat
 
-#sv_netinstall_partitions:
-#  - { name: bootmnt, idx: 1 }
-#  - { name: rootmnt, idx: 2 }
-
 sv_netinstall_partitions:
   - boot
   - root
+
+sv_netinstall_boot_img_sha256: 7f4f8cc79ebfbf7cd06063f248be92f0dd9a20c7a0ce2b076bc473d8cd7bfdf3
+
+sv_netinstall_ubuntu_img: ubuntu-server-base-20.10.img
+sv_netinstall_ubuntu_img_sha256: 6fb45ec6f686aea4864756d200bb6f355e0f2a3f0b74565e3a4f13dc14b629cb
+
+sv_netinstall_device_name: mmcblk0
