@@ -3,19 +3,6 @@
     path: "{{ sv_netinstall_netboot_dir }}/nfs/ubuntu"
     state: directory
 
-- name: Check if images are already copied
-  stat:
-    path: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_ubuntu_img_sha256 }}"
-  register: sv_netinstall_local_ubuntu_image_shafile
-
-- name: Copy Ubuntu image
-  copy:
-    src: "{{ sv_netinstall_ubuntu_img }}"
-    dest: "{{ sv_netinstall_netboot_dir }}/nfs/ubuntu/{{ sv_netinstall_ubuntu_img }}"
-  notify:
-    - Ubuntu image download done
-  when: not sv_netinstall_local_ubuntu_image_shafile.stat.exists
-
 - name: Prepare the export configuration
   lineinfile:
     path: /etc/exports

@@ -18,8 +18,11 @@
   loop_control:
     loop_var: service
 
-- name: Cleaning
-  include_tasks: handlers/cleaning.yml
+- name: Clean setup
+  include_tasks: handlers/clean_setup.yml
+
+- name: Clean copy
+  include_tasks: handlers/clean_copy.yml
 
 - name: Raspbian images download done
   copy:

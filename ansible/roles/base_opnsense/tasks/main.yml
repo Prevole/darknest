@@ -1,5 +1,5 @@
 - name: Validations
-  include_tasks: "_checks.yml"
+  include_tasks: "_checks_{{ opnsense_action }}.yml"
 
 - name: Execute opnsense role
   block:

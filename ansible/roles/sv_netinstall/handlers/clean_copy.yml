@@ -1,0 +1,7 @@
+- name: Unmount file server NFS share
+  shell: "umount {{ sv_netinstall_mount_dir }}/fs"
+
+- name: Clean fs directory
+  file:
+    path: "{{ sv_netinstall_mount_dir }}/fs"
+    state: absent

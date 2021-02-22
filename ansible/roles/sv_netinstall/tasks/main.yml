@@ -20,6 +20,9 @@
   loop_control:
     loop_var: dir
 
+- name: Copy required files
+  include_tasks: _copy_files.yml
+
 - name: Prepare netboot images infrastructure
   include_tasks: _prepare_netboot_images.yml
 

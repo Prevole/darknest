@@ -1,0 +1,61 @@
+
+- name: Check if images are already copied
+  stat:
+    path: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_boot_img_sha256 }}"
+  register: sv_netinstall_local_images_shafile
+
+- name: Check if images are already copied
+  stat:
+    path: "{{ sv_netinstall_downloads_dir }}/{{ sv_netinstall_ubuntu_img_sha256 }}"
+  register: sv_netinstall_local_ubuntu_image_shafile
+
+- name: Prepare to copy image files
+  block:
+  - name: Create mount point for file server
+    file:
+      path: "{{ sv_netinstall_mount_dir }}/fs"
+      state: directory
+
+  - name: Mount NFS share to get Raspbian images
+    shell: "mount -t nfs {{ lookup('env', 'ENV_DK_FILESERVER_IP') }}:{{ lookup('env', 'ENV_DK_FILESERVER_ROOT') }}/darknest {{ sv_netinstall_mount_dir }}/fs"
+    notify:
+      - Clean copy
+
+# To keep a local cache
+- name: Copy Raspbian Lite custom ro images
+  copy:
+    src: "{{ sv_netinstall_mount_dir }}/fs/images/rpi-read-only-{{ type }}.img"
+    dest: "{{ sv_netinstall_downloads_dir }}/rpi-read-only-{{ type }}.img"
+    remote_src: yes
+  loop:
+    - boot
+    - root
+  loop_control:
+    loop_var: type
+  notify:
+    - Raspbian images download done
+  when: not sv_netinstall_local_images_shafile.stat.exists
+
+# To keep a local cache
+- name: Copy Ubuntu image
+  copy:
+    src: "{{ sv_netinstall_mount_dir }}/fs/images/{{ sv_netinstall_ubuntu_img }}"
+    dest: "{{ sv_netinstall_netboot_dir }}/nfs/ubuntu/{{ sv_netinstall_ubuntu_img }}"
+    remote_src: yes
+  notify:
+    - Ubuntu image download done
+  when: not sv_netinstall_local_ubuntu_image_shafile.stat.exists
+
+# To keep a local cache
+# Source for the firmware files: https://github.com/Hexxeh/rpi-firmware/tree/stable
+- name: Copy firmware files
+  copy:
+    src: "{{ sv_netinstall_mount_dir }}/fs/rpi4_firmware/{{ firmware_file }}"
+    dest: "{{ sv_netinstall_rpi_firmware_files_dir }}/{{ firmware_file }}"
+    remote_src: yes
+  loop: "{{ sv_netinstall_rpi_firmware_files }}"
+  loop_control:
+    loop_var: firmware_file
+
+- name: Flush handlers
+  meta: flush_handlers
