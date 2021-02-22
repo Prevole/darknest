@@ -1,0 +1,13 @@
+# General
+export ENV_DK_PRIVATE_KEY_PATH=<path_to_private_key>
+export ENV_DK_DOMAIN_NAME=<domain_name>
+
+# Networks
+export ENV_DK_ROUTER_IP=<opnsense_router_ip>
+export ENV_DK_LAB_NETWORK=<lab_network_cidr>
+export ENV_DK_LAN_NETWORK=<lan_network_cidr>
+export ENV_DK_MGMT_NETWORK=<mgmt_network_cidr>
+
+# Network boot installation server
+export ENV_DK_NETINST_MAC_ADDR=<rpi_netinstall_mac_addr>
+export ENV_DK_NETINST_IP_ADDR=<rpi_netinstall_ip_addr>

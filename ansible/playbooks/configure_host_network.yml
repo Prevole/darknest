@@ -33,6 +33,7 @@
   vars_files:
     - ../group_vars/all/vars.yml
   tasks:
+    # TODO: Add macaddr/ipaddr checks
     - name: Reserve host IP
       include_role:
         name: base_opnsense
